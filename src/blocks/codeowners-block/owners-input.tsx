@@ -6,10 +6,12 @@ import {
   TextInputWithTokens,
   Token,
 } from "@primer/react";
+import uniq from "lodash.uniq";
 import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
 import { FieldError } from "react-hook-form";
 import toast from "react-hot-toast";
+import { useQuery } from "react-query";
 import { Item } from "./lib";
 import { useStore } from "./store";
 
@@ -76,6 +78,29 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
   const [filterValue, setFilterValue] = useState("");
   const globalOwners = useStore((state) => state.owners);
   const addOwner = useStore((state) => state.addOwner);
+  const onRequestGitHubData = useStore(
+    (state) => state.blockProps?.onRequestGitHubData
+  );
+  const context = useStore((state) => state.blockProps?.context);
+
+  const { data: contributors = [], status } = useQuery(
+    ["contributors", context?.repo, context?.owner],
+    () => {
+      if (!onRequestGitHubData) return [];
+      return onRequestGitHubData(
+        `/repos/${context?.owner}/${context?.repo}/contributors`
+      );
+    },
+    {
+      refetchOnWindowFocus: false,
+      retryOnMount: false,
+      retry: false,
+      enabled:
+        Boolean(context?.owner) &&
+        Boolean(context?.repo) &&
+        Boolean(onRequestGitHubData),
+    }
+  );
 
   let tokens = value.map((owner) => {
     return {
@@ -84,12 +109,19 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
     };
   });
 
-  let items = globalOwners.map((option) => {
-    return {
-      id: option,
-      text: option,
-    };
-  });
+  let uniqueOwnerIds = uniq([
+    ...globalOwners,
+    ...contributors.map((c: any) => `@${c.login}`),
+  ]);
+
+  let items = uniq(
+    uniqueOwnerIds.map((option) => {
+      return {
+        id: option,
+        text: option,
+      };
+    })
+  );
 
   let canAddNewItem =
     filterValue.length > 0 && matchSorter(value, filterValue).length === 0;
@@ -137,6 +169,7 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
         />
         <Autocomplete.Overlay>
           <Autocomplete.Menu
+            loading={status === "loading"}
             items={items}
             addNewItem={
               canAddNewItem
