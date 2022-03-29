@@ -122,20 +122,22 @@ export function BlockInner(props: FileBlockProps) {
                         control={control}
                       />
                     </div>
-                    <Controller
-                      render={({ field }) => {
-                        return (
-                          <OwnersInput
-                            isSubmitting={formState.isSubmitting}
-                            isValidating={formState.isValidating}
-                            error={formState.errors.rules?.[index]?.owners}
-                            {...field}
-                          />
-                        );
-                      }}
-                      name={`rules.${index}.owners`}
-                      control={control}
-                    />
+                    <div className="min-w-0 w-full">
+                      <Controller
+                        render={({ field }) => {
+                          return (
+                            <OwnersInput
+                              isSubmitting={formState.isSubmitting}
+                              isValidating={formState.isValidating}
+                              error={formState.errors.rules?.[index]?.owners}
+                              {...field}
+                            />
+                          );
+                        }}
+                        name={`rules.${index}.owners`}
+                        control={control}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

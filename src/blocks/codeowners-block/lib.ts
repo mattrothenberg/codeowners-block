@@ -1,3 +1,4 @@
+import { FieldError } from "react-hook-form";
 import { useStore } from "./store";
 export interface Rule {
   comment: string;
@@ -94,8 +95,8 @@ export async function validateOwner(owner?: string) {
   } else {
     console.log("validating email", owner);
     try {
-      await ghapi(`/search/users?q=${owner}`);
-      return true;
+      const res = await ghapi(`/search/users?q=${owner}`);
+      return res.total_count > 0;
     } catch (e) {
       console.log(`${owner}: not a valid email. Invalidating.`, e);
       return false;
@@ -104,3 +105,12 @@ export async function validateOwner(owner?: string) {
 
   return true;
 }
+
+export const pluralizeOwnersError = (error?: FieldError[]) => {
+  if (!error) return "";
+  const invalidOwners = error.map((e) => e.message).join(", ");
+  if (error.length === 1) {
+    return `${invalidOwners} is invalid.`;
+  }
+  return `${invalidOwners} are invalid.`;
+};

@@ -10,7 +10,7 @@ import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
 import { FieldError } from "react-hook-form";
 import toast from "react-hot-toast";
-import { Item } from "./lib";
+import { Item, pluralizeOwnersError } from "./lib";
 import { useStore } from "./store";
 
 interface OwnersInputProps {
@@ -50,9 +50,14 @@ function TokenComponent(props: TokenComponentProps) {
         background: "red",
         borderColor: "red",
         color: "white !important",
-        "&:hover, &:focus": {
-          background: "red",
-          borderColor: "red",
+        "&:hover": {
+          background: "red !important",
+          borderColor: "red !important",
+          color: "white !important",
+        },
+        "&:focus": {
+          background: "red !important",
+          borderColor: "red !important",
           color: "white !important",
         },
       }}
@@ -97,12 +102,14 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
     props.onChange(value.filter((owner) => owner !== id));
   };
 
+  const invalidOwners = pluralizeOwnersError(error);
+
   return (
     <FormControl disabled={isSubmitting || isValidating}>
       <FormControl.Label>Choose users</FormControl.Label>
       {error && (
         <FormControl.Validation variant="error">
-          Please provide a list of code owners.
+          Please provide a list of code owners. {invalidOwners}
         </FormControl.Validation>
       )}
       <Autocomplete>
