@@ -693,7 +693,7 @@
   resolved "https://registry.yarnpkg.com/@primer/primitives/-/primitives-7.5.1.tgz#18aa8a0f3a3f7fd49fcad31a7efb86688bffb9de"
   integrity sha512-1pFKR+FcYRPXJ+zK/qtidrCJB7WmTaAX4sG7zE5LvGWjS5latue4pzZrK0FxxGGBdAU3HpoabANsGjv7T7sRRg==
 
-"@primer/react@^35.0.0":
+"@primer/react@^35.1.0":
   version "35.1.0"
   resolved "https://registry.yarnpkg.com/@primer/react/-/react-35.1.0.tgz#d488e2b6aa2e7a9b01b7c98e35e26ce0363da7a3"
   integrity sha512-gGCT/K9WlfdJn9aM3HAtRBKOkthKK2BqOe932Xp0TJxrG5VXsS2RaxWMYZpEYkfxpbSDgLXh17vulcw3PjEWNg==

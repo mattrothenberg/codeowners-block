@@ -114,9 +114,7 @@ export function BlockInner(props: FileBlockProps) {
           <Button type="button" onClick={() => append(STUB_RULE)}>
             Add Rule
           </Button>
-          <Button variant="primary" type="submit">
-            Save File
-          </Button>
+          <Button variant="primary">Save File</Button>
         </div>
       </form>
     </div>
