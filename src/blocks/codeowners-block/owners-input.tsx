@@ -10,7 +10,7 @@ import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
 import { FieldError } from "react-hook-form";
 import toast from "react-hot-toast";
-import { Item, pluralizeOwnersError } from "./lib";
+import { Item } from "./lib";
 import { useStore } from "./store";
 
 interface OwnersInputProps {
@@ -37,9 +37,13 @@ function getAvatarSrc(text: string) {
 
 function TokenComponent(props: TokenComponentProps) {
   const { error, text, ...rest } = props;
-  const isValid = !error?.find(
-    (e) => e?.message === text && e?.type === "checkValidOwner"
-  );
+  let isValid = true;
+
+  if (Array.isArray(error)) {
+    isValid = !error?.find(
+      (e) => e?.message === text && e?.type === "checkValidOwner"
+    );
+  }
 
   return isValid ? (
     <AvatarToken avatarSrc={getAvatarSrc(text)} text={text} {...rest} />
@@ -102,14 +106,12 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
     props.onChange(value.filter((owner) => owner !== id));
   };
 
-  const invalidOwners = pluralizeOwnersError(error);
-
   return (
     <FormControl disabled={isSubmitting || isValidating}>
       <FormControl.Label>Choose users</FormControl.Label>
       {error && (
         <FormControl.Validation variant="error">
-          Please provide a list of code owners. {invalidOwners}
+          Please provide a valid list of code owners.
         </FormControl.Validation>
       )}
       <Autocomplete>

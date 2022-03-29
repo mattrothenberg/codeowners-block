@@ -1,4 +1,3 @@
-import { FieldError } from "react-hook-form";
 import { useStore } from "./store";
 export interface Rule {
   comment: string;
@@ -73,7 +72,15 @@ export async function validateOwner(owner?: string) {
   // 3. Email address.
 
   if (!owner) return false;
-  const ghapi = useStore.getState().blockProps?.onRequestGitHubData;
+  const store = useStore.getState();
+  if (store.validatedOwners[owner]) {
+    // Cache hit.
+    console.log("Cache hit for", owner);
+    return store.validatedOwners[owner];
+  }
+
+  const ghapi = store.blockProps?.onRequestGitHubData;
+
   if (!ghapi) {
     return true;
   }
@@ -105,12 +112,3 @@ export async function validateOwner(owner?: string) {
 
   return true;
 }
-
-export const pluralizeOwnersError = (error?: FieldError[]) => {
-  if (!error) return "";
-  const invalidOwners = error.map((e) => e.message).join(", ");
-  if (error.length === 1) {
-    return `${invalidOwners} is invalid.`;
-  }
-  return `${invalidOwners} are invalid.`;
-};

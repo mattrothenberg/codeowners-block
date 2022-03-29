@@ -28,6 +28,10 @@ const ruleObjectSchema = object({
     .of(
       string().test("checkValidOwner", function (value) {
         return validateOwner(value).then((res) => {
+          useStore.getState().setValidationResult({
+            owner: value as string,
+            valid: res,
+          });
           if (res) return res;
           return this.createError({ message: value });
         });
