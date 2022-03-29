@@ -1,10 +1,9 @@
 import { FileBlockProps } from "@githubnext/utils";
 import { Button } from "@primer/react";
-import { useFieldArray, useForm, Controller } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { CommentInput } from "./comment-input";
-
 import { parseCodeOwnersFile, Rule, STUB_RULE } from "./lib";
-import RuleGroup from "./rule-group";
+import { PatternInput } from "./pattern-input";
 
 type FormData = {
   rules: Rule[];
@@ -14,14 +13,16 @@ export function BlockInner(props: FileBlockProps) {
   const { content } = props;
   const parsedContent = parseCodeOwnersFile(content);
 
-  const { control, register, handleSubmit } = useForm<FormData>();
+  const { control, handleSubmit } = useForm<FormData>({
+    defaultValues: {
+      rules: parsedContent,
+    },
+  });
   const onSubmit = handleSubmit((data) => console.log(data));
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
-    {
-      control,
-      name: "rules",
-    }
-  );
+  const { fields, append } = useFieldArray({
+    control,
+    name: "rules",
+  });
 
   return (
     <div className="max-w-3xl mx-auto px-4 lg:px-0">
@@ -37,7 +38,6 @@ export function BlockInner(props: FileBlockProps) {
             {fields.map((field, index) => (
               <div key={field.id} className="Box">
                 <div className="flex flex-col gap-4 p-4">
-                  {/* <Controller /> */}
                   <Controller
                     render={({ field }) => <CommentInput {...field} />}
                     name={`rules.${index}.comment`}
@@ -45,7 +45,11 @@ export function BlockInner(props: FileBlockProps) {
                   />
                   <div className="flex w-full gap-4">
                     <div className="w-[140px] flex-shrink-0">
-                      {/* <PatternInput name={`${name}.pattern`} /> */}
+                      <Controller
+                        render={({ field }) => <PatternInput {...field} />}
+                        name={`rules.${index}.pattern`}
+                        control={control}
+                      />
                     </div>
                     {/* <OwnersInput name={`${name}.owners`} /> */}
                   </div>
