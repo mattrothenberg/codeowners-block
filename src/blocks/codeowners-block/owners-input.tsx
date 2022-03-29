@@ -1,8 +1,17 @@
-import { Autocomplete, FormControl, TextInputWithTokens } from "@primer/react";
+import { AlertFillIcon } from "@primer/octicons-react";
+import {
+  Autocomplete,
+  AvatarToken,
+  FormControl,
+  TextInputWithTokens,
+  Token,
+} from "@primer/react";
+import uniq from "lodash.uniq";
 import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
 import { FieldError } from "react-hook-form";
 import toast from "react-hot-toast";
+import { useQuery } from "react-query";
 import { Item } from "./lib";
 import { useStore } from "./store";
 
@@ -10,13 +19,88 @@ interface OwnersInputProps {
   value: string[];
   onChange: (...event: any[]) => void;
   error?: FieldError[];
+  isSubmitting: boolean;
+  isValidating: boolean;
+}
+
+interface TokenComponentProps {
+  error?: FieldError[];
+  text: string;
+}
+
+function getAvatarSrc(text: string) {
+  if (text.startsWith("@")) {
+    // Must be an org or a user
+    return `https://avatars.githubusercontent.com/${text.substring(1)}`;
+  } else {
+    return `https://avatars.githubusercontent.com/${text}`;
+  }
+}
+
+function TokenComponent(props: TokenComponentProps) {
+  const { error, text, ...rest } = props;
+  let isValid = true;
+
+  if (Array.isArray(error)) {
+    isValid = !error?.find(
+      (e) => e?.message === text && e?.type === "checkValidOwner"
+    );
+  }
+
+  return isValid ? (
+    <AvatarToken avatarSrc={getAvatarSrc(text)} text={text} {...rest} />
+  ) : (
+    <Token
+      leadingVisual={() => <AlertFillIcon className="text-white" />}
+      sx={{
+        background: "red",
+        borderColor: "red",
+        color: "white !important",
+        "&:hover": {
+          background: "red !important",
+          borderColor: "red !important",
+          color: "white !important",
+        },
+        "&:focus": {
+          background: "red !important",
+          borderColor: "red !important",
+          color: "white !important",
+        },
+      }}
+      text={text}
+      {...rest}
+    />
+  );
 }
 
 export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
-  const { value, error, ...rest } = props;
+  const { value, error, isSubmitting, isValidating, ...rest } = props;
   const [filterValue, setFilterValue] = useState("");
   const globalOwners = useStore((state) => state.owners);
   const addOwner = useStore((state) => state.addOwner);
+  const onRequestGitHubData = useStore(
+    (state) => state.blockProps?.onRequestGitHubData
+  );
+  const context = useStore((state) => state.blockProps?.context);
+
+  const { data: contributors = [], status } = useQuery(
+    ["contributors", context?.repo, context?.owner],
+    () => {
+      if (!onRequestGitHubData) return [];
+      return onRequestGitHubData(
+        `/repos/${context?.owner}/${context?.repo}/contributors`
+      );
+    },
+    {
+      refetchOnWindowFocus: false,
+      retryOnMount: false,
+      retry: false,
+      enabled:
+        Boolean(context?.owner) &&
+        Boolean(context?.repo) &&
+        Boolean(onRequestGitHubData),
+    }
+  );
 
   let tokens = value.map((owner) => {
     return {
@@ -25,12 +109,19 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
     };
   });
 
-  let items = globalOwners.map((option) => {
-    return {
-      id: option,
-      text: option,
-    };
-  });
+  let uniqueOwnerIds = uniq([
+    ...globalOwners,
+    ...contributors.map((c: any) => `@${c.login}`),
+  ]);
+
+  let items = uniq(
+    uniqueOwnerIds.map((option) => {
+      return {
+        id: option,
+        text: option,
+      };
+    })
+  );
 
   let canAddNewItem =
     filterValue.length > 0 && matchSorter(value, filterValue).length === 0;
@@ -48,11 +139,11 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
   };
 
   return (
-    <FormControl>
+    <FormControl disabled={isSubmitting || isValidating}>
       <FormControl.Label>Choose users</FormControl.Label>
       {error && (
         <FormControl.Validation variant="error">
-          Please provide a list of code owners.
+          Please provide a valid list of code owners.
         </FormControl.Validation>
       )}
       <Autocomplete>
@@ -60,6 +151,7 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
         <Autocomplete.Input
           ref={ref}
           preventTokenWrapping
+          disabled={isSubmitting || isValidating}
           validationStatus={error ? "error" : undefined}
           autocomplete="off"
           type="search"
@@ -70,11 +162,14 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
           tokens={tokens}
           value={filterValue}
           onChange={(e: any) => setFilterValue(e.target.value)}
-          // tokenComponent={TokenComponent}
+          tokenComponent={(props) => (
+            <TokenComponent error={error} {...props} />
+          )}
           onTokenRemove={handleRemove}
         />
         <Autocomplete.Overlay>
           <Autocomplete.Menu
+            loading={status === "loading"}
             items={items}
             addNewItem={
               canAddNewItem

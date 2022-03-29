@@ -6,7 +6,13 @@ import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { array, object, string } from "yup";
 import { CommentInput } from "./comment-input";
-import { parseCodeOwnersFile, Rule, stringifyRules, STUB_RULE } from "./lib";
+import {
+  parseCodeOwnersFile,
+  Rule,
+  stringifyRules,
+  STUB_RULE,
+  validateOwner,
+} from "./lib";
 import { OwnersInput } from "./owners-input";
 import { PatternInput } from "./pattern-input";
 import { useStore } from "./store";
@@ -18,7 +24,21 @@ type FormData = {
 const ruleObjectSchema = object({
   pattern: string().required(),
   comment: string(),
-  owners: array().of(string()).required().min(1),
+  owners: array()
+    .of(
+      string().test("checkValidOwner", function (value) {
+        return validateOwner(value).then((res) => {
+          useStore.getState().setValidationResult({
+            owner: value as string,
+            valid: res,
+          });
+          if (res) return res;
+          return this.createError({ message: value });
+        });
+      })
+    )
+    .required()
+    .min(1),
 });
 
 const validationSchema = object({
@@ -29,13 +49,19 @@ export function BlockInner(props: FileBlockProps) {
   const { content, onRequestUpdateContent } = props;
   const parsedContent = parseCodeOwnersFile(content);
   const setOwners = useStore((state) => state.setOwners);
+  const setBlockProps = useStore((state) => state.setFileBlockProps);
+
+  useEffect(() => {
+    setBlockProps(props);
+  }, []);
 
   const { control, handleSubmit, formState } = useForm<FormData>({
     defaultValues: {
       rules: parsedContent,
     },
     resolver: yupResolver(validationSchema),
-    reValidateMode: "onSubmit",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
   });
   const onSubmit = handleSubmit((data) => {
     console.log("Submitting", data);
@@ -75,7 +101,13 @@ export function BlockInner(props: FileBlockProps) {
                     ></IconButton>
                   </div>
                   <Controller
-                    render={({ field }) => <CommentInput {...field} />}
+                    render={({ field }) => (
+                      <CommentInput
+                        isSubmitting={formState.isSubmitting}
+                        isValidating={formState.isValidating}
+                        {...field}
+                      />
+                    )}
                     name={`rules.${index}.comment`}
                     control={control}
                   />
@@ -84,6 +116,8 @@ export function BlockInner(props: FileBlockProps) {
                       <Controller
                         render={({ field }) => (
                           <PatternInput
+                            isSubmitting={formState.isSubmitting}
+                            isValidating={formState.isValidating}
                             error={formState.errors.rules?.[index]?.pattern}
                             {...field}
                           />
@@ -92,18 +126,22 @@ export function BlockInner(props: FileBlockProps) {
                         control={control}
                       />
                     </div>
-                    <Controller
-                      render={({ field }) => {
-                        return (
-                          <OwnersInput
-                            error={formState.errors.rules?.[index]?.owners}
-                            {...field}
-                          />
-                        );
-                      }}
-                      name={`rules.${index}.owners`}
-                      control={control}
-                    />
+                    <div className="min-w-0 w-full">
+                      <Controller
+                        render={({ field }) => {
+                          return (
+                            <OwnersInput
+                              isSubmitting={formState.isSubmitting}
+                              isValidating={formState.isValidating}
+                              error={formState.errors.rules?.[index]?.owners}
+                              {...field}
+                            />
+                          );
+                        }}
+                        name={`rules.${index}.owners`}
+                        control={control}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
