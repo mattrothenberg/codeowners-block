@@ -1,6 +1,7 @@
 import { Autocomplete, FormControl, TextInputWithTokens } from "@primer/react";
 import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
+import { FieldError } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Item } from "./lib";
 import { useStore } from "./store";
@@ -8,14 +9,15 @@ import { useStore } from "./store";
 interface OwnersInputProps {
   value: string[];
   onChange: (...event: any[]) => void;
+  error?: FieldError[];
 }
 
 export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
+  const { value, error, ...rest } = props;
   const [filterValue, setFilterValue] = useState("");
   const globalOwners = useStore((state) => state.owners);
   const addOwner = useStore((state) => state.addOwner);
 
-  const { value, ...rest } = props;
   let tokens = value.map((owner) => {
     return {
       id: owner,
@@ -48,17 +50,17 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
   return (
     <FormControl>
       <FormControl.Label>Choose users</FormControl.Label>
-      {/* {meta.error && (
+      {error && (
         <FormControl.Validation variant="error">
           Please provide a list of code owners.
         </FormControl.Validation>
-      )} */}
+      )}
       <Autocomplete>
         {/* @ts-ignore */}
         <Autocomplete.Input
           ref={ref}
           preventTokenWrapping
-          // validationStatus={meta.error ? "error" : undefined}
+          validationStatus={error ? "error" : undefined}
           autocomplete="off"
           type="search"
           size="medium"

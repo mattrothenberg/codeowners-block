@@ -2,25 +2,40 @@ import { FileBlockProps } from "@githubnext/utils";
 import { Button } from "@primer/react";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { CommentInput } from "./comment-input";
 import { parseCodeOwnersFile, Rule, STUB_RULE } from "./lib";
 import { OwnersInput } from "./owners-input";
 import { PatternInput } from "./pattern-input";
 import { useStore } from "./store";
+import { object, string, array } from "yup";
 
 type FormData = {
   rules: Rule[];
 };
+
+const ruleObjectSchema = object({
+  pattern: string().required(),
+  comment: string(),
+  owners: array().of(string()).required().min(1),
+});
+
+const validationSchema = object({
+  rules: array().of(ruleObjectSchema).min(0),
+});
 
 export function BlockInner(props: FileBlockProps) {
   const { content } = props;
   const parsedContent = parseCodeOwnersFile(content);
   const setOwners = useStore((state) => state.setOwners);
 
-  const { control, handleSubmit } = useForm<FormData>({
+  const { control, handleSubmit, formState } = useForm<FormData>({
     defaultValues: {
       rules: parsedContent,
     },
+    resolver: yupResolver(validationSchema),
+    reValidateMode: "onSubmit",
   });
   const onSubmit = handleSubmit((data) => console.log(data));
   const { fields, append } = useFieldArray({
@@ -56,14 +71,24 @@ export function BlockInner(props: FileBlockProps) {
                   <div className="flex w-full gap-4">
                     <div className="w-[140px] flex-shrink-0">
                       <Controller
-                        render={({ field }) => <PatternInput {...field} />}
+                        render={({ field }) => (
+                          <PatternInput
+                            error={formState.errors.rules?.[index].pattern}
+                            {...field}
+                          />
+                        )}
                         name={`rules.${index}.pattern`}
                         control={control}
                       />
                     </div>
                     <Controller
                       render={({ field }) => {
-                        return <OwnersInput {...field} />;
+                        return (
+                          <OwnersInput
+                            error={formState.errors.rules?.[index].owners}
+                            {...field}
+                          />
+                        );
                       }}
                       name={`rules.${index}.owners`}
                       control={control}
