@@ -32,7 +32,7 @@
         ""
       ],
       "matches": [
-        "CODOWNERS",
+        "CODEOWNERS",
         "codeowners"
       ],
       "example_path": "https://github.com/mattrothenberg/use-gauge/blob/main/CODEOWNERS"
