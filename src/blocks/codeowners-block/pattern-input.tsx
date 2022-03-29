@@ -12,6 +12,7 @@ export function PatternInputComponent(props: PatternInputProps, ref: any) {
     <FormControl>
       <FormControl.Label>Rule</FormControl.Label>
       <TextInput
+        ref={ref}
         monospace
         placeholder="Enter pattern"
         value={value}

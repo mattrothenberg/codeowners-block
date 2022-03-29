@@ -1,9 +1,12 @@
 import { FileBlockProps } from "@githubnext/utils";
 import { Button } from "@primer/react";
+import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { CommentInput } from "./comment-input";
 import { parseCodeOwnersFile, Rule, STUB_RULE } from "./lib";
+import { OwnersInput } from "./owners-input";
 import { PatternInput } from "./pattern-input";
+import { useStore } from "./store";
 
 type FormData = {
   rules: Rule[];
@@ -12,6 +15,7 @@ type FormData = {
 export function BlockInner(props: FileBlockProps) {
   const { content } = props;
   const parsedContent = parseCodeOwnersFile(content);
+  const setOwners = useStore((state) => state.setOwners);
 
   const { control, handleSubmit } = useForm<FormData>({
     defaultValues: {
@@ -23,6 +27,12 @@ export function BlockInner(props: FileBlockProps) {
     control,
     name: "rules",
   });
+
+  // Cache initial options and populate store with u
+  let options = parsedContent.flatMap((rule) => rule.owners);
+  useEffect(() => {
+    setOwners(options);
+  }, [options]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 lg:px-0">
@@ -51,7 +61,13 @@ export function BlockInner(props: FileBlockProps) {
                         control={control}
                       />
                     </div>
-                    {/* <OwnersInput name={`${name}.owners`} /> */}
+                    <Controller
+                      render={({ field }) => {
+                        return <OwnersInput {...field} />;
+                      }}
+                      name={`rules.${index}.owners`}
+                      control={control}
+                    />
                   </div>
                 </div>
               </div>
