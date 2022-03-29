@@ -64,7 +64,7 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
           autocomplete="off"
           type="search"
           size="medium"
-          placeholder="Enter username or email"
+          placeholder="Enter @org-name, @username, or email"
           as={TextInputWithTokens}
           {...rest}
           tokens={tokens}
