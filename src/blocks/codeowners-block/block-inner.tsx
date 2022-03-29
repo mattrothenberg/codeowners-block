@@ -1,8 +1,10 @@
 import { FileBlockProps } from "@githubnext/utils";
 import { Button } from "@primer/react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
+import { CommentInput } from "./comment-input";
 
 import { parseCodeOwnersFile, Rule, STUB_RULE } from "./lib";
+import RuleGroup from "./rule-group";
 
 type FormData = {
   rules: Rule[];
@@ -24,11 +26,32 @@ export function BlockInner(props: FileBlockProps) {
   return (
     <div className="max-w-3xl mx-auto px-4 lg:px-0">
       <form onSubmit={onSubmit}>
-        {fields.length === 0 && (
+        {fields.length === 0 ? (
           <div className="pt-6 pb-3">
             <p className="text-sm text-gray-600">
               No rules detected! Add a rule to get started.
             </p>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4">
+            {fields.map((field, index) => (
+              <div key={field.id} className="Box">
+                <div className="flex flex-col gap-4 p-4">
+                  {/* <Controller /> */}
+                  <Controller
+                    render={({ field }) => <CommentInput {...field} />}
+                    name={`rules.${index}.comment`}
+                    control={control}
+                  />
+                  <div className="flex w-full gap-4">
+                    <div className="w-[140px] flex-shrink-0">
+                      {/* <PatternInput name={`${name}.pattern`} /> */}
+                    </div>
+                    {/* <OwnersInput name={`${name}.owners`} /> */}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
         <div className="pt-4 border-t flex items-center justify-between">
