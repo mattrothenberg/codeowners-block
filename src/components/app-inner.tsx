@@ -119,7 +119,7 @@ export function AppInner(props: AppInnerProps) {
       <React.Fragment>
         {blockType === "file" && <FileBlock {...rest} block={block} />}
         {blockType === "folder" && <FolderBlock {...rest} block={block} />}
-        <CallbackNotifications />
+        {/* <CallbackNotifications /> */}
       </React.Fragment>
     </ErrorBoundary>
   );

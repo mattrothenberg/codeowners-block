@@ -3,12 +3,14 @@ import { forwardRef } from "react";
 
 interface CommentInputProps {
   value: string;
+  isSubmitting: boolean;
+  isValidating: boolean;
 }
 
 export function CommentInputComponent(props: CommentInputProps, ref: any) {
-  const { value, ...rest } = props;
+  const { value, isSubmitting, isValidating, ...rest } = props;
   return (
-    <FormControl>
+    <FormControl disabled={isSubmitting}>
       <FormControl.Label>Comment</FormControl.Label>
       <Textarea
         ref={ref}

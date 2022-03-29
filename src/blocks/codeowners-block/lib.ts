@@ -1,3 +1,4 @@
+import { useStore } from "./store";
 export interface Rule {
   comment: string;
   pattern: string;
@@ -63,3 +64,43 @@ export const STUB_RULE = {
   owners: [],
   comment: "",
 };
+
+export async function validateOwner(owner?: string) {
+  // Three cases.
+  // 1. Username starting with @
+  // 2. Org/team starting with @
+  // 3. Email address.
+
+  if (!owner) return false;
+  const ghapi = useStore.getState().blockProps?.onRequestGitHubData;
+  if (!ghapi) {
+    return true;
+  }
+
+  if (owner.startsWith("@")) {
+    try {
+      await ghapi(`/users/${owner.substring(1)}`);
+      return true;
+    } catch (e) {
+      console.log(`${owner}: not a valid user. Invalidating.`, e);
+    }
+
+    try {
+      await ghapi(`/orgs/${owner.substring(1)}`);
+    } catch (e) {
+      console.log(`${owner}: not a valid org. Invalidating.`, e);
+      return false;
+    }
+  } else {
+    console.log("validating email", owner);
+    try {
+      await ghapi(`/search/users?q=${owner}`);
+      return true;
+    } catch (e) {
+      console.log(`${owner}: not a valid email. Invalidating.`, e);
+      return false;
+    }
+  }
+
+  return true;
+}

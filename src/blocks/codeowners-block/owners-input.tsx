@@ -1,4 +1,11 @@
-import { Autocomplete, FormControl, TextInputWithTokens } from "@primer/react";
+import { AlertFillIcon } from "@primer/octicons-react";
+import {
+  Autocomplete,
+  AvatarToken,
+  FormControl,
+  TextInputWithTokens,
+  Token,
+} from "@primer/react";
 import { matchSorter } from "match-sorter";
 import { forwardRef, useState } from "react";
 import { FieldError } from "react-hook-form";
@@ -10,10 +17,53 @@ interface OwnersInputProps {
   value: string[];
   onChange: (...event: any[]) => void;
   error?: FieldError[];
+  isSubmitting: boolean;
+  isValidating: boolean;
+}
+
+interface TokenComponentProps {
+  error?: FieldError[];
+  text: string;
+}
+
+function getAvatarSrc(text: string) {
+  if (text.startsWith("@")) {
+    // Must be an org or a user
+    return `https://avatars.githubusercontent.com/${text.substring(1)}`;
+  } else {
+    return `https://avatars.githubusercontent.com/${text}`;
+  }
+}
+
+function TokenComponent(props: TokenComponentProps) {
+  const { error, text, ...rest } = props;
+  const isValid = !error?.find(
+    (e) => e?.message === text && e?.type === "checkValidOwner"
+  );
+
+  return isValid ? (
+    <AvatarToken avatarSrc={getAvatarSrc(text)} text={text} {...rest} />
+  ) : (
+    <Token
+      leadingVisual={() => <AlertFillIcon className="text-white" />}
+      sx={{
+        background: "red",
+        borderColor: "red",
+        color: "white !important",
+        "&:hover, &:focus": {
+          background: "red",
+          borderColor: "red",
+          color: "white !important",
+        },
+      }}
+      text={text}
+      {...rest}
+    />
+  );
 }
 
 export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
-  const { value, error, ...rest } = props;
+  const { value, error, isSubmitting, isValidating, ...rest } = props;
   const [filterValue, setFilterValue] = useState("");
   const globalOwners = useStore((state) => state.owners);
   const addOwner = useStore((state) => state.addOwner);
@@ -48,7 +98,7 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
   };
 
   return (
-    <FormControl>
+    <FormControl disabled={isSubmitting || isValidating}>
       <FormControl.Label>Choose users</FormControl.Label>
       {error && (
         <FormControl.Validation variant="error">
@@ -60,6 +110,7 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
         <Autocomplete.Input
           ref={ref}
           preventTokenWrapping
+          disabled={isSubmitting || isValidating}
           validationStatus={error ? "error" : undefined}
           autocomplete="off"
           type="search"
@@ -70,7 +121,9 @@ export function OwnersInputComponent(props: OwnersInputProps, ref: any) {
           tokens={tokens}
           value={filterValue}
           onChange={(e: any) => setFilterValue(e.target.value)}
-          // tokenComponent={TokenComponent}
+          tokenComponent={(props) => (
+            <TokenComponent error={error} {...props} />
+          )}
           onTokenRemove={handleRemove}
         />
         <Autocomplete.Overlay>
