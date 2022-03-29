@@ -1,15 +1,14 @@
 import { FileBlockProps } from "@githubnext/utils";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Button } from "@primer/react";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { array, object, string } from "yup";
 import { CommentInput } from "./comment-input";
-import { parseCodeOwnersFile, Rule, STUB_RULE } from "./lib";
+import { parseCodeOwnersFile, Rule, stringifyRules, STUB_RULE } from "./lib";
 import { OwnersInput } from "./owners-input";
 import { PatternInput } from "./pattern-input";
 import { useStore } from "./store";
-import { object, string, array } from "yup";
 
 type FormData = {
   rules: Rule[];
@@ -26,7 +25,7 @@ const validationSchema = object({
 });
 
 export function BlockInner(props: FileBlockProps) {
-  const { content } = props;
+  const { content, onRequestUpdateContent } = props;
   const parsedContent = parseCodeOwnersFile(content);
   const setOwners = useStore((state) => state.setOwners);
 
@@ -37,7 +36,10 @@ export function BlockInner(props: FileBlockProps) {
     resolver: yupResolver(validationSchema),
     reValidateMode: "onSubmit",
   });
-  const onSubmit = handleSubmit((data) => console.log(data));
+  const onSubmit = handleSubmit((data) => {
+    console.log("Submitting", data);
+    onRequestUpdateContent(stringifyRules(data.rules));
+  });
   const { fields, append } = useFieldArray({
     control,
     name: "rules",
@@ -73,7 +75,7 @@ export function BlockInner(props: FileBlockProps) {
                       <Controller
                         render={({ field }) => (
                           <PatternInput
-                            error={formState.errors.rules?.[index].pattern}
+                            error={formState.errors.rules?.[index]?.pattern}
                             {...field}
                           />
                         )}
@@ -85,7 +87,7 @@ export function BlockInner(props: FileBlockProps) {
                       render={({ field }) => {
                         return (
                           <OwnersInput
-                            error={formState.errors.rules?.[index].owners}
+                            error={formState.errors.rules?.[index]?.owners}
                             {...field}
                           />
                         );
