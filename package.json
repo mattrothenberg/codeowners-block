@@ -50,9 +50,15 @@
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-error-boundary": "^3.1.4",
+    "react-hook-form": "^7.28.1",
+    "react-hot-toast": "^2.2.0",
     "react-query": "^3.32.3",
     "styled-components": "4.4.1",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "zustand": "^3.7.1"
+  },
+  "resolutions": {
+    "@primer/behaviors": "^1.1.1"
   },
   "devDependencies": {
     "@types/git-url-parse": "^9.0.1",
