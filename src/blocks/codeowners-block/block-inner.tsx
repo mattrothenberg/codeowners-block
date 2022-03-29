@@ -1,6 +1,7 @@
 import { FileBlockProps } from "@githubnext/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Button } from "@primer/react";
+import { TrashIcon } from "@primer/octicons-react";
+import { Button, IconButton } from "@primer/react";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { array, object, string } from "yup";
@@ -40,7 +41,7 @@ export function BlockInner(props: FileBlockProps) {
     console.log("Submitting", data);
     onRequestUpdateContent(stringifyRules(data.rules));
   });
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "rules",
   });
@@ -63,8 +64,16 @@ export function BlockInner(props: FileBlockProps) {
         ) : (
           <div className="space-y-4 py-4">
             {fields.map((field, index) => (
-              <div key={field.id} className="Box">
-                <div className="flex flex-col gap-4 p-4">
+              <div key={field.id} className="Box relative">
+                <div className="flex flex-col gap-4 px-4 pb-4 pt-5">
+                  <div className="absolute top-2 right-2">
+                    <IconButton
+                      type="button"
+                      onClick={() => remove(index)}
+                      variant="danger"
+                      icon={TrashIcon}
+                    ></IconButton>
+                  </div>
                   <Controller
                     render={({ field }) => <CommentInput {...field} />}
                     name={`rules.${index}.comment`}
