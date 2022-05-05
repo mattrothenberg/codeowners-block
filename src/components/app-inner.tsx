@@ -16,6 +16,7 @@ interface Block {
 export interface AppInnerProps {
   metadata: any;
   doMimicProductionEnvironment: boolean;
+  onUpdateMetadata: (metadata: any) => Promise<void>;
   block: Block;
   dependencies: Record<string, string>;
   urlParts: gitUrlParse.GitUrl;
@@ -109,6 +110,7 @@ function ErrorFallback({
 export function AppInner(props: AppInnerProps) {
   const { onReset, block, ...rest } = props;
   const blockType = block?.type;
+  console.log("app inner", props);
 
   return (
     <ErrorBoundary
@@ -119,7 +121,7 @@ export function AppInner(props: AppInnerProps) {
       <React.Fragment>
         {blockType === "file" && <FileBlock {...rest} block={block} />}
         {blockType === "folder" && <FolderBlock {...rest} block={block} />}
-        {/* <CallbackNotifications /> */}
+        <CallbackNotifications />
       </React.Fragment>
     </ErrorBoundary>
   );

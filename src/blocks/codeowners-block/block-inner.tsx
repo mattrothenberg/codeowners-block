@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { array, object, string } from "yup";
 import { CommentInput } from "./comment-input";
+import { tw } from "twind";
 import {
   parseCodeOwnersFile,
   Rule,
@@ -46,7 +47,7 @@ const validationSchema = object({
 });
 
 export function BlockInner(props: FileBlockProps) {
-  const { content, onRequestUpdateContent } = props;
+  const { content, onUpdateContent } = props;
   const parsedContent = parseCodeOwnersFile(content);
   const setOwners = useStore((state) => state.setOwners);
   const setBlockProps = useStore((state) => state.setFileBlockProps);
@@ -64,8 +65,7 @@ export function BlockInner(props: FileBlockProps) {
     reValidateMode: "onChange",
   });
   const onSubmit = handleSubmit((data) => {
-    console.log("Submitting", data);
-    onRequestUpdateContent(stringifyRules(data.rules));
+    onUpdateContent(stringifyRules(data.rules));
   });
   const { fields, append, remove } = useFieldArray({
     control,
@@ -79,20 +79,20 @@ export function BlockInner(props: FileBlockProps) {
   }, [options]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 lg:px-0">
+    <div className={tw`max-w-3xl mx-auto px-4 lg:px-0`}>
       <form onSubmit={onSubmit}>
         {fields.length === 0 ? (
-          <div className="pt-6 pb-3">
-            <p className="text-sm text-gray-600">
+          <div className={tw`pt-6 pb-3`}>
+            <p className={tw`text-sm text-gray-600`}>
               No rules detected! Add a rule to get started.
             </p>
           </div>
         ) : (
-          <div className="space-y-4 py-4">
+          <div className={tw`space-y-4 py-4`}>
             {fields.map((field, index) => (
-              <div key={field.id} className="Box relative">
-                <div className="flex flex-col gap-4 px-4 pb-4 pt-5">
-                  <div className="absolute top-2 right-2">
+              <div key={field.id} className={tw`Box relative`}>
+                <div className={tw`flex flex-col gap-4 px-4 pb-4 pt-5`}>
+                  <div className={tw`absolute top-2 right-2`}>
                     <IconButton
                       type="button"
                       onClick={() => remove(index)}
@@ -111,8 +111,8 @@ export function BlockInner(props: FileBlockProps) {
                     name={`rules.${index}.comment`}
                     control={control}
                   />
-                  <div className="flex w-full gap-4">
-                    <div className="w-[140px] flex-shrink-0">
+                  <div className={tw`flex w-full gap-4`}>
+                    <div className={tw`w-[140px] flex-shrink-0`}>
                       <Controller
                         render={({ field }) => (
                           <PatternInput
@@ -126,7 +126,7 @@ export function BlockInner(props: FileBlockProps) {
                         control={control}
                       />
                     </div>
-                    <div className="min-w-0 w-full">
+                    <div className={tw`min-w-0 w-full`}>
                       <Controller
                         render={({ field }) => {
                           return (
@@ -148,7 +148,7 @@ export function BlockInner(props: FileBlockProps) {
             ))}
           </div>
         )}
-        <div className="pt-4 border-t flex items-center justify-between">
+        <div className={tw`pt-4 border-t flex items-center justify-between`}>
           <Button type="button" onClick={() => append(STUB_RULE)}>
             Add Rule
           </Button>

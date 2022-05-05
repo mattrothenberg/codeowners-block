@@ -1,5 +1,4 @@
 import { FileBlockProps } from "@githubnext/utils";
-import { ThemeProvider } from "@primer/react";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { BlockInner } from "./block-inner";
@@ -19,11 +18,11 @@ export default function (props: FileBlockProps) {
   }
 
   return (
-    <ThemeProvider>
+    <>
       <QueryClientProvider client={queryClient}>
         <BlockInner {...props} />
       </QueryClientProvider>
       <Toaster />
-    </ThemeProvider>
+    </>
   );
 }

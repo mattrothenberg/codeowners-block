@@ -39,13 +39,13 @@
     }
   ],
   "dependencies": {
-    "@codesandbox/sandpack-react": "^0.13.13",
-    "@githubnext/utils": "^0.19.6",
+    "@codesandbox/sandpack-react": "^0.19.6",
+    "@githubnext/utils": "^0.22.0",
     "@hookform/resolvers": "^2.8.8",
     "@loadable/component": "^5.15.0",
     "@octokit/rest": "^18.12.0",
     "@primer/octicons-react": "^17.0.0",
-    "@primer/react": "^35.1.0",
+    "@primer/react": "^35.2.1",
     "@types/lodash.uniqueid": "^4.0.6",
     "git-url-parse": "^11.6.0",
     "lodash.uniq": "^4.5.0",
@@ -58,7 +58,8 @@
     "react-hook-form": "^7.28.1",
     "react-hot-toast": "^2.2.0",
     "react-query": "^3.32.3",
-    "styled-components": "4.4.1",
+    "styled-components": "^5.3.5",
+    "twind": "^0.16.17",
     "yup": "^0.32.11",
     "zustand": "^3.7.1"
   },

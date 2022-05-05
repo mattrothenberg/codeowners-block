@@ -1,26 +1,23 @@
 import GitUrlParse from "git-url-parse";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { AppInner } from "./components/app-inner";
-import { useDebounce, useLocalStorage, usePackageJson } from "./hooks";
+import { useLocalStorage, usePackageJson } from "./hooks";
 
 function App() {
   const [blockId, setBlockId] = useLocalStorage(
     "blockId",
-    "/src/blocks/example-file-block/index.tsx"
+    "/src/blocks/codeowners-block/index.tsx"
   );
   const [fileUrl, setFileUrl] = useLocalStorage(
     "fileUrl",
     "https://github.com/githubocto/flat/blob/main/src/git.ts"
   );
-
-  const debouncedFileUrl = useDebounce(fileUrl, 500);
-
   const [doMimicProductionEnvironment, setDoMimicProductionEnvironment] =
     useLocalStorage("doMimicProductionEnvironment", false);
 
   const { data: pkgJson, status } = usePackageJson();
 
-  const metadataKey = `composable-github-block-template--${blockId}-${debouncedFileUrl}`;
+  const metadataKey = `composable-github-block-template--${blockId}-${fileUrl}`;
   const [metadata, setMetadata] = useLocalStorage(metadataKey, {});
 
   useEffect(() => {
@@ -42,31 +39,24 @@ function App() {
     };
   }, [metadataKey]);
 
+  const onUpdateMetadata = (newMetadata: any) => {
+    return new Promise<void>((resolve) => {
+      setMetadata(newMetadata);
+      resolve();
+    });
+  };
+
   const urlParts = useMemo(() => {
-    if (!debouncedFileUrl) return null;
+    if (!fileUrl) return null;
 
     try {
-      return GitUrlParse(debouncedFileUrl);
+      return GitUrlParse(fileUrl);
     } catch (e) {
       return null;
     }
-  }, [debouncedFileUrl]);
+  }, [fileUrl]);
 
-  const [block, setBlock] = useState(
-    pkgJson?.blocks.find((v) => v.entry === blockId)
-  );
-
-  useEffect(() => {
-    const entry = pkgJson?.blocks.find((v) => v.entry === blockId);
-
-    if (entry) {
-      setBlock(entry);
-    } else {
-      const defaultBlockId = pkgJson?.blocks[0].entry;
-      if (!defaultBlockId) return;
-      setBlockId(defaultBlockId);
-    }
-  }, [blockId, pkgJson]);
+  const block = pkgJson?.blocks.find((v) => v.entry === blockId);
 
   return (
     <div
@@ -175,6 +165,7 @@ function App() {
                 pkgJson.blocks
                   .filter((v) => v.type === "file")
                   .map((block, index) => {
+                    console.log(block.entry);
                     return (
                       <option value={block.entry} key={index}>
                         {block.title}
@@ -231,7 +222,7 @@ function App() {
           overflow: "auto",
         }}
       >
-        {(!blockId || !debouncedFileUrl) && (
+        {(!blockId || !fileUrl) && (
           <div
             style={{
               padding: "1em",
@@ -240,10 +231,11 @@ function App() {
             <p>Please select a block and enter a file path.</p>
           </div>
         )}
-        {!!block && !!debouncedFileUrl && !!urlParts && (
+        {!!block && !!fileUrl && !!urlParts && (
           <AppInner
             key={block.entry}
             metadata={metadata}
+            onUpdateMetadata={onUpdateMetadata}
             onReset={() => setFileUrl("")}
             block={block}
             dependencies={pkgJson?.dependencies as Record<string, string>}
