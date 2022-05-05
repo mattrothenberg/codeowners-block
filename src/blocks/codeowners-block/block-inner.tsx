@@ -2,7 +2,7 @@ import { FileBlockProps } from "@githubnext/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { TrashIcon } from "@primer/octicons-react";
 import { Button, IconButton } from "@primer/react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { array, object, string } from "yup";
 import { CommentInput } from "./comment-input";
@@ -24,7 +24,16 @@ type FormData = {
 
 const ruleObjectSchema = object({
   pattern: string().required(),
-  comment: string(),
+  comment: string().test("validComment", function (value) {
+    if (!value) return true;
+    // value is a (potentially multi-line) string.
+    // we want to make sure that every line starts with a # character, unless it's empty
+    return value
+      ? value.split("\n").every((line) => {
+          return line.startsWith("#") || line === "";
+        })
+      : false;
+  }),
   owners: array()
     .of(
       string().test("checkValidOwner", function (value) {
@@ -48,7 +57,7 @@ const validationSchema = object({
 
 export function BlockInner(props: FileBlockProps) {
   const { content, onUpdateContent } = props;
-  const parsedContent = parseCodeOwnersFile(content);
+  const parsedContent = useMemo(() => parseCodeOwnersFile(content), [content]);
   const setOwners = useStore((state) => state.setOwners);
   const setBlockProps = useStore((state) => state.setFileBlockProps);
 
@@ -64,6 +73,7 @@ export function BlockInner(props: FileBlockProps) {
     criteriaMode: "all",
     reValidateMode: "onChange",
   });
+
   const onSubmit = handleSubmit((data) => {
     onUpdateContent(stringifyRules(data.rules));
   });
@@ -105,6 +115,7 @@ export function BlockInner(props: FileBlockProps) {
                       <CommentInput
                         isSubmitting={formState.isSubmitting}
                         isValidating={formState.isValidating}
+                        error={formState.errors.rules?.[index]?.comment}
                         {...field}
                       />
                     )}
@@ -152,7 +163,7 @@ export function BlockInner(props: FileBlockProps) {
           <Button type="button" onClick={() => append(STUB_RULE)}>
             Add Rule
           </Button>
-          <Button variant="primary">Save File</Button>
+          <Button variant="primary">Confirm Changes</Button>
         </div>
       </form>
     </div>

@@ -14,7 +14,7 @@ export function stringifyRules(rules: Rule[]) {
   let result = ``;
   // convert the rules array to a multiline string.
   rules.forEach((rule) => {
-    result += rule.comment + "\n";
+    result += `${rule.comment}\n\n`;
     result += rule.pattern + "      " + rule.owners.join(" ") + "\n";
   });
 
